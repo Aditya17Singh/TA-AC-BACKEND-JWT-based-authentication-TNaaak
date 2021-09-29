@@ -1,50 +1,47 @@
 var express = require("express");
-var jwt = require("jsonwebtoken");
-const User = require("../models/User");
-const Profile = require("../models/Profile");
-const auth = require("../middlewares/auth");
+var User = require("../models/User");
+var multer = require("multer");
+var path = require("path");
+
 var router = express.Router();
 
-/* GET  user data. */
-router.get("/", auth.isLoggedIn, async function (req, res, next) {
-  let token = req.headers.authorization;
+const uploadpath = path.join(__dirname, "..", "uploads");
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, uploadpath);
+  },
+  filename: function (req, file, cb) {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
 
-  let profileData = await jwt.verify(token, "thisissecret");
+var upload = multer({ storage });
 
+/* REGISTER users */
+router.post("/", upload.single("image"), async (req, res, next) => {
+  req.body.image = req.file.filename;
   try {
-    let user = await User.findOne({ username: profileData.username }).populate(
-      "profile"
-    );
-    if (!user) {
-      return res.status(400).json({ error: "invalid token" });
-    }
-    res.json({ user });
+    var user = await User.create(req.body);
+    let token = await user.signToken();
+    res.json({ user: await user.userJSON(token) });
   } catch (error) {
     next(error);
   }
 });
 
-//update user data
-
-router.put("/", auth.isLoggedIn, async (req, res, next) => {
-  let data = req.body.user;
-  console.log(data);
-
+// LOGIN users
+router.get("/login", async (req, res, next) => {
+  var { email, password } = req.body;
+  if (!email || !password)
+    return res.status(400).json({ error: "Email/Password required!" });
   try {
-    let updatedUser = await User.findOneAndUpdate(
-      {
-        username: req.user.username,
-      },
-      data
-    );
-    let updatedProfile = await Profile.findOneAndUpdate(
-      {
-        username: req.user.username,
-      },
-      data
-    );
-
-    res.json({ user: updatedUser });
+    let user = await User.findOne({ email });
+    if (!user)
+      return res.status(400).json({ error: "Email is not registered" });
+    let result = await user.verifyPassword(password);
+    if (!result) return res.status(400).json({ error: "Password is invalid" });
+    let token = await user.signToken();
+    res.json({ user: await user.userJSON(token) });
   } catch (error) {
     next(error);
   }

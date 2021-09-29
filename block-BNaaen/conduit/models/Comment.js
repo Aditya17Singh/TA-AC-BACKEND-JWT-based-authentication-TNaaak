@@ -1,28 +1,11 @@
-let mongoose = require("mongoose");
-let bcrypt = require("bcryptjs");
-let slugger = require("slugger");
+var mongoose = require("mongoose");
+var Schema = mongoose.Schema;
 
-let Schema = mongoose.Schema;
+var userSchema = new Schema({
+  username: { type: String, required: true },
+  email: { type: String, required: true },
+  bio: { type: String },
+  image: { type: String },
+});
 
-let commentSchema = new Schema(
-  {
-    author: { type: Object, require: true },
-    body: { type: String, require: true },
-    article: { type: mongoose.Types.ObjectId, ref: "Article" },
-  },
-  { timestamps: true }
-);
-
-commentSchema.methods.displayComment = function (id = null) {
-  return {
-    id: this.id,
-    body: this.body,
-    createdAt: this.createdAt,
-    updatedAt: this.updatedAt,
-    author: this.author.displayUser(id),
-  };
-};
-
-let Comment = mongoose.model("Comment", commentSchema);
-
-module.exports = Comment;
+module.exports = mongoose.model("User", userSchema);

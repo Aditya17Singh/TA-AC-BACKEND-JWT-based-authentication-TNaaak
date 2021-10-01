@@ -19,9 +19,10 @@ var upload = multer({ storage });
 
 /* REGISTER users */
 router.post("/", upload.single("image"), async (req, res, next) => {
-  req.body.image = req.file.filename;
+  // req.body.image = req.file.filename;
   try {
     var user = await User.create(req.body);
+    console.log(req.body);
     let token = await user.signToken();
     res.json({ user: await user.userJSON(token) });
   } catch (error) {
@@ -39,6 +40,7 @@ router.get("/login", async (req, res, next) => {
     if (!user)
       return res.status(400).json({ error: "Email is not registered" });
     let result = await user.verifyPassword(password);
+    // return res.send(result);
     if (!result) return res.status(400).json({ error: "Password is invalid" });
     let token = await user.signToken();
     res.json({ user: await user.userJSON(token) });

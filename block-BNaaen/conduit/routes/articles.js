@@ -20,6 +20,7 @@ router.post("/", auth.verifyToken, async (req, res, next) => {
 
 // get single article
 router.get("/:slug", async (req, res, next) => {
+  console.log(req.params.slug);
   let slug = req.params.slug;
   try {
     let article = await Article.findOne({ slug }).populate("author").exec();

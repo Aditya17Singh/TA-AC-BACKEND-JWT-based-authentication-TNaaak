@@ -11,7 +11,6 @@ var userSchema = new Schema({
   image: { type: String },
   following: [{ type: Schema.Types.ObjectId, ref: "User", unique: true }],
   followers: [{ type: Schema.Types.ObjectId, ref: "User", unique: true }],
-  // unique for followers not working
 });
 
 userSchema.pre("save", async function (next) {
@@ -25,9 +24,10 @@ userSchema.pre("save", async function (next) {
 
 userSchema.methods.verifyPassword = async function (password) {
   try {
-    let result = bcrypt.compare(password, this.password);
+    let result = await bcrypt.compare(password, this.password);
     return result;
   } catch (error) {
+    console.log(error);
     return error;
   }
 };

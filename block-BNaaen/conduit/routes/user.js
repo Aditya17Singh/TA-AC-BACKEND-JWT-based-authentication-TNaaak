@@ -7,18 +7,6 @@ var multer = require("multer");
 const { token } = require("morgan");
 var router = express.Router();
 
-const uploadpath = path.join(__dirname, "..", "uploads");
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadpath);
-  },
-  filename: function (req, file, cb) {
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
-});
-
-var upload = multer({ storage });
-
 // GET current user
 router.get("/", auth.verifyToken, async (req, res, next) => {
   try {
@@ -42,7 +30,7 @@ router.get("/", auth.verifyToken, async (req, res, next) => {
 router.put(
   "/",
   auth.verifyToken,
-  upload.single("image"),
+  // upload.single("image"),
   async (req, res, next) => {
     try {
       let user = await User.findById(req.user.userId);
